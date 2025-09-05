@@ -1,19 +1,20 @@
 stages: [lint, deploy]
 
 default:
-  tags: ["k8s"]   # гоним джобы на твоём self-hosted runner
+  tags: ["k8s"]
 
 .helm_base:
   image: alpine/helm:3.14.4
   before_script:
     - apk add --no-cache kubectl=~1.30.0 ca-certificates
-    - mkdir -p ~/.kube
-    - echo "$KUBE_CONFIG_B64" | base64 -d > ~/.kube/config
+    # GitLab положит файл и выставит $KUBECONFIG -> kubectl сам его увидит
+    - kubectl cluster-info
 
 helm_lint:
   stage: lint
   extends: .helm_base
-  script: ["helm lint charts/myapp"]
+  script:
+    - helm lint charts/myapp
   rules:
     - if: $CI_COMMIT_BRANCH
 
@@ -26,7 +27,7 @@ helm_deploy_dev:
     IMAGE_REPO: ${IMAGE_REPO:-registry.gitlab.com/georgiiwinistr1977-group/app}
     IMAGE_TAG: ${IMAGE_TAG:-latest}
   script:
-    - kubectl get ns "$HELM_NAMESPACE" >/dev/null 2>&1 || kubectl create ns "$HELM_NAMESPACE"
+    - kubectl get ns "$HELM_NAMESPACE" || kubectl create ns "$HELM_NAMESPACE"
     - >
       helm upgrade --install "$HELM_RELEASE" charts/myapp
       --namespace "$HELM_NAMESPACE"
