@@ -1,7 +1,7 @@
 stages: [lint, deploy]
 
 default:
-  tags: ["k8s"]   # гоняем джобы на твоём runner’e
+  tags: ["k8s"]   # гоним джобы на твоём self-hosted runner
 
 .helm_base:
   image: alpine/helm:3.14.4
