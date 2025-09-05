@@ -1,6 +1,9 @@
 stages: [lint, deploy]
 
-.default-helm:
+default:
+  tags: ["k8s"]   # гоняем джобы на твоём runner’e
+
+.helm_base:
   image: alpine/helm:3.14.4
   before_script:
     - apk add --no-cache kubectl=~1.30.0 ca-certificates
@@ -9,27 +12,26 @@ stages: [lint, deploy]
 
 helm_lint:
   stage: lint
-  extends: .default-helm
-  script:
-    - helm lint charts/myapp
+  extends: .helm_base
+  script: ["helm lint charts/myapp"]
   rules:
     - if: $CI_COMMIT_BRANCH
 
 helm_deploy_dev:
   stage: deploy
-  extends: .default-helm
+  extends: .helm_base
   variables:
     HELM_RELEASE: ${HELM_RELEASE:-myapp}
     HELM_NAMESPACE: ${HELM_NAMESPACE:-dev}
-    IMAGE_REPO: ${IMAGE_REPO:-registry.gitlab.com/<group>/app}
+    IMAGE_REPO: ${IMAGE_REPO:-registry.gitlab.com/georgiiwinistr1977-group/app}
     IMAGE_TAG: ${IMAGE_TAG:-latest}
   script:
     - kubectl get ns "$HELM_NAMESPACE" >/dev/null 2>&1 || kubectl create ns "$HELM_NAMESPACE"
-    - |
-      helm upgrade --install "$HELM_RELEASE" charts/myapp \
-        --namespace "$HELM_NAMESPACE" \
-        --set-string image.repository="$IMAGE_REPO" \
-        --set-string image.tag="$IMAGE_TAG" \
-        --atomic --wait --timeout 5m
+    - >
+      helm upgrade --install "$HELM_RELEASE" charts/myapp
+      --namespace "$HELM_NAMESPACE"
+      --set-string image.repository="$IMAGE_REPO"
+      --set-string image.tag="$IMAGE_TAG"
+      --atomic --wait --timeout 5m
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
