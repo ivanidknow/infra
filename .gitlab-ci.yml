@@ -1,14 +1,27 @@
 stages: [lint, deploy]
 
 default:
-  tags: ["main"]
+  tags: ["main"]   # ваш проектный раннер
 
 .helm_base:
   image: alpine/helm:3.14.4
   before_script:
-    - apk add --no-cache kubectl=~1.30.0 ca-certificates
-    # GitLab положит файл и выставит $KUBECONFIG -> kubectl сам его увидит
+    # Без жёсткой версии: apk сам поставит доступный kubectl
+    - apk add --no-cache kubectl ca-certificates
+    # Проверим, что kubeconfig доступен (тип File, ключ KUBECONFIG)
+    - echo "KUBECONFIG=$KUBECONFIG"
+    - test -f "$KUBECONFIG" || (echo "no kubeconfig file" && exit 2)
+    - kubectl version --short
     - kubectl cluster-info
+
+# Небольшая дымовая проверка, чтобы сразу увидеть сетевые/RBAC проблемы
+smoke_kube:
+  stage: lint
+  extends: .helm_base
+  script:
+    - kubectl get ns
+  rules:
+    - if: $CI_COMMIT_BRANCH
 
 helm_lint:
   stage: lint
