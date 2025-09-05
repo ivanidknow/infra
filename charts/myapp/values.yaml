@@ -1,0 +1,40 @@
+namespace: demo
+
+image:
+  repository: localhost/test-task
+  tag: "0.1"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  port: 8080
+  type: ClusterIP
+
+config:                # попадёт в ConfigMap (env)
+  PING_RESPONSE: "pong"
+  LOG_LEVEL: "info"
+
+secret:
+  enabled: true        # если false — Secret и envFrom secretRef не создаются
+  data:                # попадёт в Secret (stringData)
+    DB_USER: "demo"
+    DB_PASSWORD: "demo-pass"
+
+resources:             # важно для HPA
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    cpu:
+      averageUtilization: 60
+    memory:
+      averageUtilization: 70
