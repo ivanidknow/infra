@@ -1,7 +1,7 @@
 stages: [lint, deploy]
 
 default:
-  tags: ["k8s"]
+  tags: ["main"]
 
 .helm_base:
   image: alpine/helm:3.14.4
