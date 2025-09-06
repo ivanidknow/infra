@@ -1,8 +1,11 @@
-
+# charts/myapp/values.yaml
 image:
-  repository: localhost/test-task
-  tag: "0.1"
+  repository: 192.168.0.10:5050/root/app   # ← твой GitLab Registry
+  tag: "latest"                             # или конкретный тег из app-пайплайна
   pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: regcred                           # секрет с доступом к реестру (в ns dev)
 
 replicaCount: 1
 
@@ -10,17 +13,17 @@ service:
   port: 8080
   type: ClusterIP
 
-config:                # попадёт в ConfigMap (env)
+config:
   PING_RESPONSE: "pong"
   LOG_LEVEL: "info"
 
 secret:
-  enabled: true        # если false — Secret и envFrom secretRef не создаются
-  data:                # попадёт в Secret (stringData)
+  enabled: true
+  data:
     DB_USER: "demo"
     DB_PASSWORD: "demo-pass"
 
-resources:             # важно для HPA
+resources:
   requests:
     cpu: 100m
     memory: 128Mi
