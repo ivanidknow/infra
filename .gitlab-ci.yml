@@ -37,16 +37,16 @@ helm_deploy_dev:
   stage: deploy
   extends: .helm_base
   variables:
-    HELM_RELEASE: ${HELM_RELEASE:-myapp}
-    HELM_NAMESPACE: ${HELM_NAMESPACE:-dev}
-    IMAGE_REPO: ${IMAGE_REPO:-192.168.0.10:5050/root/app}
-    IMAGE_TAG: ${IMAGE_TAG:-latest}
+    HELM_RELEASE: "myapp"
+    HELM_NAMESPACE: "dev"
+    IMAGE_REPO: "192.168.0.10:5050/root/app"
+    IMAGE_TAG: "latest"
   script:
-    # НЕ трогаем namespaces (нет прав на cluster-scope)
+    - echo "Release=$HELM_RELEASE Namespace=$HELM_NAMESPACE Image=${IMAGE_REPO}:${IMAGE_TAG}"
     - >
-      helm upgrade --install "$HELM_RELEASE" charts/myapp
-      --namespace "$HELM_NAMESPACE"
-      --set-string image.repository="$IMAGE_REPO"
-      --set-string image.tag="$IMAGE_TAG"
+      helm upgrade --install "${HELM_RELEASE}" charts/myapp
+      --namespace "${HELM_NAMESPACE}"
+      --set-string image.repository="${IMAGE_REPO}"
+      --set-string image.tag="${IMAGE_TAG}"
       --atomic --wait --timeout 5m
   rules: [ { if: '$CI_COMMIT_BRANCH == "main"' } ]
