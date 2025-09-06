@@ -1,34 +1,36 @@
 stages: [lint, deploy]
 
 default:
-  tags: ["main"]   # запускаем джобы на твоём runner'е с тегом main
+  tags: ["main"]
+
+variables:
+  # где хранить kubeconfig внутри job
+  KUBECONFIG: "$CI_PROJECT_DIR/.kube/config"
 
 .helm_base:
   image: alpine/helm:3.14.4
   before_script:
     - apk add --no-cache kubectl ca-certificates
-    # из B64 в файл, который kubectl увидит по $KUBECONFIG
+    - test -n "$KUBECONFIG_B64" || (echo "KUBECONFIG_B64 is empty" && exit 2)
+    - mkdir -p "$(dirname "$KUBECONFIG")"
     - echo "$KUBECONFIG_B64" | base64 -d > "$KUBECONFIG"
-    - test -s "$KUBECONFIG" || (echo "empty kubeconfig" && exit 2)
+    - chmod 600 "$KUBECONFIG"
     - kubectl version --client=true
     - kubectl cluster-info
 
-# дымовой тест, чтобы сразу увидеть проблемы с доступом к API
 smoke_kube:
   stage: lint
   extends: .helm_base
   script:
+    - echo "KUBECONFIG=$KUBECONFIG"
     - kubectl get ns
-  rules:
-    - if: $CI_COMMIT_BRANCH
+  rules: [ { if: '$CI_COMMIT_BRANCH' } ]
 
 helm_lint:
   stage: lint
   extends: .helm_base
-  script:
-    - helm lint charts/myapp
-  rules:
-    - if: $CI_COMMIT_BRANCH
+  script: [ "helm lint charts/myapp" ]
+  rules: [ { if: '$CI_COMMIT_BRANCH' } ]
 
 helm_deploy_dev:
   stage: deploy
@@ -36,7 +38,7 @@ helm_deploy_dev:
   variables:
     HELM_RELEASE: ${HELM_RELEASE:-myapp}
     HELM_NAMESPACE: ${HELM_NAMESPACE:-dev}
-    IMAGE_REPO: ${IMAGE_REPO:-registry.gitlab.com/georgiiwinistr1977-group/app}
+    IMAGE_REPO: ${IMAGE_REPO:-192.168.0.10:5050/root/app}
     IMAGE_TAG: ${IMAGE_TAG:-latest}
   script:
     - kubectl get ns "$HELM_NAMESPACE" || kubectl create ns "$HELM_NAMESPACE"
@@ -46,5 +48,4 @@ helm_deploy_dev:
       --set-string image.repository="$IMAGE_REPO"
       --set-string image.tag="$IMAGE_TAG"
       --atomic --wait --timeout 5m
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+  rules: [ { if: '$CI_COMMIT_BRANCH == "main"' } ]
