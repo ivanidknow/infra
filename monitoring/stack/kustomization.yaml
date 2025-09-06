@@ -1,7 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - namespace.yaml                 # создать ns до всего остального
-  - helmrepo.yaml
+  - namespace.yaml
+  - helmrepo.yaml          # namespace: flux-system внутри файла!
   - grafana-admin-secret.yaml
   - helmrelease.yaml
