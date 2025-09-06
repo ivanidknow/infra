@@ -4,7 +4,6 @@ default:
   tags: ["main"]
 
 variables:
-  # где хранить kubeconfig внутри job
   KUBECONFIG: "$CI_PROJECT_DIR/.kube/config"
 
 .helm_base:
@@ -16,15 +15,16 @@ variables:
     - echo "$KUBECONFIG_B64" | base64 -d > "$KUBECONFIG"
     - chmod 600 "$KUBECONFIG"
     - kubectl version --client=true
-    - kubectl get ns
-    - kubectl auth can-i --list -n dev
+    # только права в dev, никаких cluster-wide команд
+    - kubectl -n dev auth can-i get pods || (echo "no RBAC to read pods in dev" && exit 3)
 
 smoke_kube:
   stage: lint
   extends: .helm_base
   script:
     - echo "KUBECONFIG=$KUBECONFIG"
-    - kubectl get ns
+    - kubectl -n dev get pods
+    - kubectl -n dev get svc
   rules: [ { if: '$CI_COMMIT_BRANCH' } ]
 
 helm_lint:
@@ -42,7 +42,7 @@ helm_deploy_dev:
     IMAGE_REPO: ${IMAGE_REPO:-192.168.0.10:5050/root/app}
     IMAGE_TAG: ${IMAGE_TAG:-latest}
   script:
-    - kubectl get ns "$HELM_NAMESPACE" || kubectl create ns "$HELM_NAMESPACE"
+    # НЕ трогаем namespaces (нет прав на cluster-scope)
     - >
       helm upgrade --install "$HELM_RELEASE" charts/myapp
       --namespace "$HELM_NAMESPACE"
