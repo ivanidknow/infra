@@ -16,7 +16,8 @@ variables:
     - echo "$KUBECONFIG_B64" | base64 -d > "$KUBECONFIG"
     - chmod 600 "$KUBECONFIG"
     - kubectl version --client=true
-    - kubectl cluster-info
+    - kubectl get ns
+    - kubectl auth can-i --list -n dev
 
 smoke_kube:
   stage: lint
