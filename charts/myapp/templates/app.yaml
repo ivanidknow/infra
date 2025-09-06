@@ -1,4 +1,4 @@
-{{- $ns := .Values.namespace | default .Release.Namespace -}}
+{{- $ns := .Release.Namespace -}}
 {{- $name := include "myapp.fullname" . -}}
 
 # --- ConfigMap ---------------------------------------------------------------
