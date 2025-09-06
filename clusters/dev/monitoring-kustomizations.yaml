@@ -9,9 +9,9 @@ spec:
   sourceRef:
     kind: GitRepository
     name: infra
+  # ВАЖНО: путь ОТ КОРНЯ репозитория
   path: ./monitoring/stack
   wait: true
-
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -26,5 +26,6 @@ spec:
   sourceRef:
     kind: GitRepository
     name: infra
+  # ВАЖНО: путь ОТ КОРНЯ репозитория
   path: ./monitoring/app
   wait: true
