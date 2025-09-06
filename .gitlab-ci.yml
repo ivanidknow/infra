@@ -6,10 +6,10 @@ default:
 .helm_base:
   image: alpine/helm:3.14.4
   before_script:
-    - apk add --no-cache kubectl ca-certificates   # без жёсткой версии
-    # GitLab положит kubeconfig в $KUBECONFIG (переменная типа File)
-    - echo "KUBECONFIG=$KUBECONFIG"
-    - test -f "$KUBECONFIG" || (echo "no kubeconfig file" && exit 2)
+    - apk add --no-cache kubectl ca-certificates
+    # из B64 в файл, который kubectl увидит по $KUBECONFIG
+    - echo "$KUBECONFIG_B64" | base64 -d > "$KUBECONFIG"
+    - test -s "$KUBECONFIG" || (echo "empty kubeconfig" && exit 2)
     - kubectl version --client=true
     - kubectl cluster-info
 
