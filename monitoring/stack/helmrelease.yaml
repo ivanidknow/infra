@@ -1,0 +1,46 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prom-stack
+  namespace: monitoring
+spec:
+  interval: 10m
+  install:
+    createNamespace: true
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      # version: <опционально зафиксируй>
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: flux-system
+  values:
+    grafana:
+      admin:
+        existingSecret: grafana-admin
+        existingSecretKey: admin-password
+      ingress:
+        enabled: true
+        ingressClassName: nginx
+        hosts:
+          - grafana.local
+        path: /
+      # удобнее включить сайдкары для дашбордов/датасорсов
+      sidecar:
+        dashboards:
+          enabled: true
+          label: grafana_dashboard
+        datasources:
+          enabled: true
+    prometheus:
+      prometheusSpec:
+        retention: 7d
+        serviceMonitorSelector: {}   # собирать все SM
+        podMonitorSelector: {}       # (если будут)
+        ruleSelector: {}             # собирать все правила
+    # Стандартные компоненты включены по умолчанию:
+    kubeStateMetrics:
+      enabled: true
+    nodeExporter:
+      enabled: true

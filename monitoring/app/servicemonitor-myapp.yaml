@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: myapp
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames: ["dev"]
+  selector:
+    matchLabels:
+      app: myapp             # должен совпасть с labels у Service dev/myapp
+  endpoints:
+    - path: /metrics
+      interval: 30s
+      scheme: http
+      # если у сервиса порт назван "http", укажи port: http
+      # иначе можно targetPort: 80
+      port: http
+      honorLabels: true
