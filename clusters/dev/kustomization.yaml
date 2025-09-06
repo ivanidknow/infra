@@ -2,5 +2,4 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - myapp-helmrelease.yaml
-  - ../../monitoring/stack
-  - ../../monitoring/app
+  - monitoring-kustomizations.yaml
