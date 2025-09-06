@@ -5,16 +5,25 @@ metadata:
   namespace: monitoring
 spec:
   interval: 10m
-  install:
-    createNamespace: true
   chart:
     spec:
       chart: kube-prometheus-stack
-      # version: <опционально зафиксируй>
+      # Зафиксируй версию чартов под твой репозиторий, пример:
+      # version: 60.2.0
       sourceRef:
         kind: HelmRepository
         name: prometheus-community
-        namespace: flux-system
+        namespace: flux-system   # ВАЖНО: где создан HelmRepository
+  install:
+    createNamespace: true
+    crds: Create                 # ВАЖНО: поставить CRD (PrometheusRule и т.п.)
+    remediation:
+      retries: -1
+  upgrade:
+    crds: CreateReplace          # ВАЖНО: обновлять CRD при апгрейде
+    remediation:
+      retries: -1
+
   values:
     grafana:
       admin:
@@ -26,20 +35,26 @@ spec:
         hosts:
           - grafana.local
         path: /
-      # удобнее включить сайдкары для дашбордов/датасорсов
+        pathType: Prefix
       sidecar:
         dashboards:
           enabled: true
           label: grafana_dashboard
         datasources:
           enabled: true
+
     prometheus:
       prometheusSpec:
         retention: 7d
-        serviceMonitorSelector: {}   # собирать все SM
-        podMonitorSelector: {}       # (если будут)
-        ruleSelector: {}             # собирать все правила
-    # Стандартные компоненты включены по умолчанию:
+        # Пустые селекторы = матчить все объекты данного типа
+        serviceMonitorSelector: {}
+        podMonitorSelector: {}
+        ruleSelector: {}
+        # Эти три позволяют собирать объекты из ЛЮБОГО namespace
+        serviceMonitorNamespaceSelector: {}
+        podMonitorNamespaceSelector: {}
+        ruleNamespaceSelector: {}
+
     kubeStateMetrics:
       enabled: true
     nodeExporter:
