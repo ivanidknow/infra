@@ -10,7 +10,7 @@ default:
     # GitLab положит kubeconfig в $KUBECONFIG (переменная типа File)
     - echo "KUBECONFIG=$KUBECONFIG"
     - test -f "$KUBECONFIG" || (echo "no kubeconfig file" && exit 2)
-    - kubectl version --short
+    - kubectl version --client=true
     - kubectl cluster-info
 
 # дымовой тест, чтобы сразу увидеть проблемы с доступом к API
