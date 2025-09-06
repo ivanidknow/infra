@@ -2,19 +2,16 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: monitoring-stack
-  namespace: dev                       # ← объект лежит в dev (как в твоём flux tree)
+  namespace: dev
 spec:
   interval: 5m
   prune: true
   wait: true
-  # из какого Git забирать (он в flux-system!)
   sourceRef:
     kind: GitRepository
     name: infra
-    namespace: flux-system             # ← ВАЖНО
-  path: ./monitoring/stack             # путь от корня репозитория
-  targetNamespace: monitoring          # куда применять ресурсы
-  createNamespace: true                # создадим ns автоматически
+    namespace: flux-system   # КРИТИЧНО: где лежит GitRepository/infra
+  path: ./monitoring/stack
 
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -24,7 +21,7 @@ metadata:
   namespace: dev
 spec:
   dependsOn:
-    - name: monitoring-stack           # сначала ставим стек (CRD), потом app
+    - name: monitoring-stack
       namespace: dev
   interval: 5m
   prune: true
@@ -32,7 +29,7 @@ spec:
   sourceRef:
     kind: GitRepository
     name: infra
-    namespace: flux-system             # ← ВАЖНО
+    namespace: flux-system   # КРИТИЧНО
   path: ./monitoring/app
+  # РЕКОМЕНДУЮ, если манифесты app без namespace:
   targetNamespace: monitoring
-  createNamespace: true
