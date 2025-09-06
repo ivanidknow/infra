@@ -1,13 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
-# Все манифесты для окружения dev складываем рядом в этой папке.
-# Flux Kustomization "dev" смотрит на path: ./clusters/dev и применяет перечисленные ресурсы ниже.
 resources:
-  # HelmRelease приложения (namespace и прочее задаются внутри самого манифеста)
   - myapp-helmrelease.yaml
-
-  # Два Flux Kustomization-объекта для мониторинга:
-  #   monitoring-stack (kube-prometheus-stack)
-  #   monitoring-app   (ServiceMonitor/Rules/Dashboards)
-  - monitoring-kustomizations.yaml
+  - ../../monitoring/stack
+  - ../../monitoring/app
