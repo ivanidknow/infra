@@ -15,5 +15,5 @@ spec:
       scheme: http
       # если у сервиса порт назван "http", укажи port: http
       # иначе можно targetPort: 80
-      port: http
+      targetPort: 80
       honorLabels: true
