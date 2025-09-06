@@ -1,0 +1,27 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: myapp
+  namespace: dev
+spec:
+  interval: 1m
+  chart:
+    spec:
+      chart: ./charts/myapp
+      sourceRef:
+        kind: GitRepository
+        name: infra
+        namespace: flux-system
+      interval: 1m
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    image:
+      repository: 192.168.0.10:5050/root/app
+      tag: latest
+    service:
+      port: 8000
